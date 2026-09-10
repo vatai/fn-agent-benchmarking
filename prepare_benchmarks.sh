@@ -8,7 +8,7 @@ set -euo pipefail
 
 HERE="$(dirname "$(readlink -f "$0")")"
 LOCAL_CLONE="$HERE/HeCBench"
-UPSTREAM="git@github.com:RIKEN-RCCS/HeCBench.git"
+UPSTREAM="https://github.com/RIKEN-RCCS/HeCBench.git"
 SRC_REPO="${1:-$([[ -d "$LOCAL_CLONE" ]] && echo "$LOCAL_CLONE" || echo "$UPSTREAM")}"
 DEST="${2:-$HERE/benchmarks}"
 BRANCH="ktwork"
@@ -18,7 +18,7 @@ KEEP_SHARED=(include lib data)
 clone_branch() {
   rm -rf "$DEST"
   git clone --quiet --no-checkout "$SRC_REPO" "$DEST"
-  git -C "$DEST" fetch --quiet origin "+refs/remotes/origin/$BRANCH:refs/remotes/origin/$BRANCH" || true
+  git -C "$DEST" fetch --quiet origin "+refs/remotes/origin/$BRANCH:refs/remotes/origin/$BRANCH" 2>/dev/null || true
   git -C "$DEST" checkout --quiet "origin/$BRANCH" 2>/dev/null || git -C "$DEST" checkout --quiet "$BRANCH"
 }
 
@@ -34,11 +34,53 @@ keep_only_omp_benchmarks() {
   done
 }
 
+source_files() {
+  find "$DEST/src2" -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.cc' \
+      -o -name '*.cxx' -o -name '*.h' -o -name '*.hpp' -o -name '*.cu' \) "$@"
+}
+
+# Some sources have CRLF line endings, which would hide backslash continuations.
+normalise_line_endings() {
+  source_files -exec sed -i 's/\r$//' {} +
+}
+
 # Deletes "#pragma omp ..." lines (also commented-out ones) with their backslash-continued lines.
 strip_omp_pragmas() {
-  find "$DEST/src2" -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.cc' \
-      -o -name '*.cxx' -o -name '*.h' -o -name '*.hpp' -o -name '*.cu' \) \
-    -exec sed -i '/^[[:space:]]*\(\/\/[[:space:]]*\)\?#[[:space:]]*pragma[[:space:]]\+omp\b/{:a;/\\$/{N;ba};d}' {} +
+  source_files -exec sed -i '/^[[:space:]]*\(\/\/[[:space:]]*\)\?#[[:space:]]*pragma[[:space:]]\+omp\b/{:a;/\\$/{N;ba};d}' {} +
+}
+
+# Makefiles reference headers from sibling variants (e.g. -I../foo-cuda for
+# reference.h). Copy the headers a benchmark #includes from those siblings into
+# the benchmark itself and point the Makefiles at the local copies.
+sibling_dirs_of() {
+  grep -ho -- '\.\./[A-Za-z0-9_+.-]*-\(cuda\|sycl\|hip\|acc\)' "$1"/Makefile* 2>/dev/null | sort -u
+}
+
+included_headers() {
+  grep -ho '#[[:space:]]*include[[:space:]]*"[^"]*"' "$1"/*.c* "$1"/*.h* 2>/dev/null \
+    | sed 's/.*"\(.*\)"/\1/' | sort -u || true
+}
+
+copy_included_headers() {
+  local bench="$1" sibling="$2" pass header
+  for pass in 1 2 3; do
+    for header in $(included_headers "$bench"); do
+      if [[ ! -e "$bench/$header" && -e "$sibling/$header" ]]; then
+        mkdir -p "$(dirname "$bench/$header")" && cp "$sibling/$header" "$bench/$header"
+      fi
+    done
+  done
+}
+
+localise_sibling_headers() {
+  local bench sibling pattern
+  for bench in "$DEST"/src2/*-omp/; do
+    for sibling in $(sibling_dirs_of "$bench"); do
+      copy_included_headers "$bench" "$bench/$sibling"
+      pattern=$(printf '%s' "$sibling" | sed 's/[.]/\\./g')
+      sed -i -e "s|-I$pattern/\?||g" -e "s|$pattern/|./|g" "$bench"/Makefile*
+    done
+  done
 }
 
 flatten_and_clean() {
@@ -54,7 +96,9 @@ remove_local_clone() {
 }
 
 clone_branch
+localise_sibling_headers
 keep_only_omp_benchmarks
+normalise_line_endings
 strip_omp_pragmas
 flatten_and_clean
 remove_local_clone

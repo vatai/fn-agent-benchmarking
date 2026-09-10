@@ -1,3 +1,5 @@
 .envrc
 benchmarks/
 HeCBench/
+results/baseline/
+results_run.log
