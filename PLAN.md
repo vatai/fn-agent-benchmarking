@@ -31,14 +31,10 @@ different models) can optimise a set of benchmarks on this HPC hardware.
 - Benchmarks: the `benchmarks/*` that compile with `Makefile.nvc` (`VERIFY=yes`),
   run, and pass their built-in self-check (`pass` in `results/baseline_report.md`).
 
-## TODO (to be removed once the user has provided everything)
+## Agent instructions
 
-1. Instructions: confirm/edit the proposed agent prompt and constraints below.
-
-## Proposed agent instructions (to confirm)
-
-Prompt given to every agent (same for claude and opencode), run inside the
-isolated copy of one benchmark directory:
+Prompt in `harness/agent_prompt.md`, given to every agent (claude and opencode)
+inside the isolated copy of one benchmark directory:
 
 > You are in the directory of a small HPC benchmark written in serial C/C++.
 > Your task is to make it run as fast as possible on this machine (NVIDIA GB200
@@ -51,13 +47,12 @@ isolated copy of one benchmark directory:
 > `make -f Makefile.nvc SM=cc100 run`. The program prints its own kernel time
 > and a PASS/FAIL self-check; the result only counts if the self-check passes.
 > Iterate: measure, optimise, re-verify. Do not modify the verification code or
-> the reference implementation. When done, leave the fastest correct version in
-> place and stop.
+> the reference implementation. You have a time limit of 2 hours in total. When
+> done, leave the fastest correct version in place and stop.
 
-Constraints: one benchmark per run; wall-time limit 1 h per job; no turn/token
-cap beyond that (claude: `--max-turns` unset; opencode default); agent gets
-`--dangerously-skip-permissions` / equivalent since it runs isolated in a Slurm
-job. The harness independently rebuilds and runs the result, checks PASS,
+Constraints: one benchmark per run; agent killed after 2 h, Slurm job limit
+2 h 30 min; no turn/token cap; agent gets `--dangerously-skip-permissions`
+(claude) / `--auto` (opencode) since it runs isolated in a Slurm job. The harness independently rebuilds and runs the result, checks PASS,
 extracts the printed kernel time and computes speedup vs the stripped baseline.
 
 ## Plan/Steps
@@ -69,4 +64,11 @@ extracts the printed kernel time and computes speedup vs the stripped baseline.
    Result (VERIFY=yes): 322 total, 284 compile, 58 pass self-check, 76 run w/o self-check,
    69 timeout (300 s), 43 crash, 38 self-check fail.
 3. [done] Benchmark subset = the 58 with `pass` in the report; correctness = built-in self-check.
-4. Agent launcher (sbatch, claude/opencode, fn-eval), result collection, report.
+4. [done] Harness in `harness/`: `run_agent.sh` (one Slurm job: baseline -> agent ->
+   re-verify -> speedup -> fn-eval -> result.json), `submit_all.sh` (all
+   tool x model x benchmark x rep jobs), `extract_time.py`, `agent_usage.py`,
+   `collect_results.py` (-> results/summary.md, results/runs.json).
+   Runs live outside the repo in `../fn-agent-benchmarking-runs/` so agents do
+   not see this repo's CLAUDE.md/.git.
+5. [in progress] Smoke test (softmax, 10 min budget) then full submission (3306 jobs).
+6. Collect results, write summary, commit.

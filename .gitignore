@@ -4,3 +4,5 @@ HeCBench/
 results/baseline/
 results_run.log
 runs/
+results/slurm/
+results/submitted_jobs.txt

@@ -21,14 +21,27 @@ Plan/Steps section updated and never edit Goal/Specification.
   no local clone exists.
 - `build_and_test_benchmarks.sh` — builds every `benchmarks/*/Makefile.nvc`
   with nvc++, runs `make run`, writes `results/baseline_report.md`.
-- `benchmarks/`, `HeCBench/`, `results/baseline/` are generated and gitignored;
-  only `results/baseline_report.md` is committed.
+- `harness/` — experiment launcher. `run_agent.sh TOOL MODEL BENCH REP` is one
+  Slurm job: copies the benchmark twice (baseline + work), measures the stripped
+  baseline, runs the agent in `work/` with `agent_prompt.md` (2 h timeout),
+  rebuilds and re-runs the result, checks PASS, computes speedup from the
+  program's printed kernel times (`extract_time.py`, wall time fallback),
+  records fn-eval feedback (`agent-telemetry-feedback`, resolved by cwd) and
+  writes `result.json`. `submit_all.sh` submits all tool x model x benchmark x
+  rep jobs; `collect_results.py` aggregates into `results/summary.md`.
+- Run directories live outside the repo (`../fn-agent-benchmarking-runs/`) so
+  agents cannot see this repo's CLAUDE.md, PLAN.md or git history.
+- `benchmarks/`, `HeCBench/`, `results/baseline/`, `results/slurm/` are generated
+  and gitignored; `results/baseline_report.md` and `results/summary.md` are committed.
 
 ## Commands
 
 ```bash
 ./prepare_benchmarks.sh [SRC_REPO] [DEST]          # regenerate benchmarks/ (deletes HeCBench/)
 ./build_and_test_benchmarks.sh                    # full build+run, ~1 h; env: BUILD_JOBS RUN_JOBS RUN_TIMEOUT
+source .envrc && harness/submit_all.sh            # submit all agent runs (DRY_RUN=1, TOOLS, BENCHMARKS, REPS)
+sbatch --account=$SBATCH_ACCOUNT --chdir=$PWD harness/run_agent.sh claude claude-sonnet-5 softmax 1   # one run
+python3 harness/collect_results.py                # -> results/summary.md
 grep -E '\| (pass|unverified) \|' results/baseline_report.md | cut -d'|' -f2,4   # usable benchmarks
 
 # single benchmark
