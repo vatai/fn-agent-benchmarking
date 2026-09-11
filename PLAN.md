@@ -16,7 +16,7 @@ different models) can optimise a set of benchmarks on this HPC hardware.
   to the stripped serial version in `benchmarks/` (the agent's starting point).
 - Output of the generated code is verified for correctness.
 - Models: `models_claude.txt` (sonnet, opus, fable) and `models_opencode.txt`
-  (RiVault models capable of agentic coding), one `provider/model` per line.
+  (RiVault models via the litellm provider that pass a tool-calling probe).
 - Benchmarks: the `benchmarks/*` that compile with `Makefile.nvc` (`VERIFY=yes`),
   run, and pass their built-in self-check (`pass` in `results/baseline_report.md`).
 
