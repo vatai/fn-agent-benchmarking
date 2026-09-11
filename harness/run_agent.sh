@@ -73,14 +73,34 @@ measure_baseline() {
   BASELINE_SECONDS=$(measured_seconds "$BASELINE" "$wall")
 }
 
+# opencode keeps a SQLite database under $XDG_DATA_HOME/opencode; concurrent
+# jobs sharing the NFS home corrupt each other's inserts, so each run gets its own.
+private_opencode_data() {
+  export XDG_DATA_HOME="$RUN_DIR/xdg-data"
+  mkdir -p "$XDG_DATA_HOME/opencode"
+  rsync -a --exclude 'opencode.db*' --exclude log --exclude tool-output --exclude snapshot \
+    "$HOME/.local/share/opencode/" "$XDG_DATA_HOME/opencode/"
+}
+
 set_agent_command() {
   local prompt="$1"
   case "$TOOL" in
     claude)   AGENT_CMD=(claude -p "$prompt" --model "$MODEL" --dangerously-skip-permissions
                          --output-format json) ;;
-    opencode) AGENT_CMD=(opencode run --model "$MODEL" --format json --auto "$prompt") ;;
+    opencode) private_opencode_data
+              AGENT_CMD=(opencode run --model "$MODEL" --format json --auto "$prompt") ;;
     *) echo "unknown tool $TOOL" >&2; exit 2 ;;
   esac
+}
+
+# An agent that produced no output tokens (rate limit, server error, crash)
+# did not attempt the task; such runs are recorded but not scored.
+detect_agent_error() {
+  USAGE_JSON=$(python3 "$HARNESS/agent_usage.py" "$TOOL" "$RUN_DIR/agent_output.json")
+  AGENT_ERROR=$(python3 -c "
+import json,sys
+u=json.loads(sys.argv[1]); rc=int(sys.argv[2])
+print('true' if rc not in (0,124) or not u.get('output_tokens') else 'false')" "$USAGE_JSON" "$AGENT_RC")
 }
 
 run_agent() {
@@ -92,6 +112,7 @@ run_agent() {
       >"$RUN_DIR/agent_output.json" 2>"$RUN_DIR/agent_stderr.log")
   AGENT_RC=$?
   AGENT_WALL=$(elapsed_since "$start")
+  detect_agent_error
 }
 
 verify_result() {
@@ -120,6 +141,7 @@ else: print(max(1,min(5,round(3+2*math.log10(max(s,1))/2))))" "$SPEEDUP" "$CORRE
 
 record_feedback() {
   local cli satisfaction
+  if [[ "$AGENT_ERROR" == true ]]; then FEEDBACK_LINE="skipped: agent error"; return; fi
   case "$TOOL" in claude) cli="$CLAUDE_FEEDBACK" ;; *) cli="$OPENCODE_FEEDBACK" ;; esac
   satisfaction=$(satisfaction_from_speedup)
   (cd "$WORK" && "$cli" --subject "Optimise HeCBench $BENCH (serial baseline) on GB200" \
@@ -130,9 +152,7 @@ record_feedback() {
 }
 
 write_result() {
-  local usage
-  usage=$(python3 "$HARNESS/agent_usage.py" "$TOOL" "$RUN_DIR/agent_output.json")
-  USAGE_JSON="$usage" NODE="$(hostname)" python3 - "$RUN_DIR/result.json" <<'PY'
+  NODE="$(hostname)" python3 - "$RUN_DIR/result.json" <<'PY'
 import json, os, sys
 env = os.environ
 def num(name):
@@ -142,7 +162,8 @@ result = {
   "tool": env["TOOL"], "model": env["MODEL"], "benchmark": env["BENCH"], "rep": int(env["REP"]),
   "slurm_job_id": env.get("SLURM_JOB_ID", ""), "node": env["NODE"],
   "baseline": {"rc": int(env["BASELINE_RC"]), "seconds": num("BASELINE_SECONDS")},
-  "agent": {"rc": int(env["AGENT_RC"]), "wall_seconds": num("AGENT_WALL"), "usage": json.loads(env["USAGE_JSON"])},
+  "agent": {"rc": int(env["AGENT_RC"]), "wall_seconds": num("AGENT_WALL"), "error": env["AGENT_ERROR"] == "true",
+            "usage": json.loads(env["USAGE_JSON"])},
   "verify": {"rc": int(env["VERIFY_RC"]), "correct": env["CORRECT"] == "true", "seconds": num("AGENT_SECONDS")},
   "speedup": num("SPEEDUP"),
   "feedback": env.get("FEEDBACK_LINE", "").strip(),
@@ -154,7 +175,7 @@ PY
 
 export TOOL MODEL BENCH REP
 export_measurements() {
-  export BASELINE_RC BASELINE_SECONDS AGENT_RC AGENT_WALL VERIFY_RC CORRECT AGENT_SECONDS SPEEDUP FEEDBACK_LINE
+  export BASELINE_RC BASELINE_SECONDS AGENT_RC AGENT_WALL AGENT_ERROR USAGE_JSON VERIFY_RC CORRECT AGENT_SECONDS SPEEDUP FEEDBACK_LINE
 }
 
 setup_environment
