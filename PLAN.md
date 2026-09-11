@@ -13,12 +13,14 @@ different models) can optimise a set of benchmarks on this HPC hardware.
   invoked when an agent finishes its evaluation.
 - Record per run: token usage, wall time, speedup.
 - Output of the generated code is verified for correctness.
-- Benchmark details to be provided by the user.
+- Benchmarks: the `benchmarks/*` that compile with `Makefile.nvc` (`VERIFY=yes`),
+  run, and pass their built-in self-check (`pass` in `results/baseline_report.md`).
 
 ## TODO (to be removed once the user has provided everything)
 
-1. Benchmark: source, build command, run command, correctness check (reference
-   output / tolerance), timing method, baseline to compute speedup against.
+1. Benchmark timing: which number to take as the runtime (the benchmark's own
+   printed kernel time vs. wall time of `make run`), and the speedup baseline
+   (stripped serial version vs. original omp version).
 2. Model list: which models for claude (`--model`) and opencode
    (`provider/model`), and how many repetitions per model.
 3. Instructions: the exact prompt given to agents, and constraints (time/turn/
@@ -43,5 +45,5 @@ different models) can optimise a set of benchmarks on this HPC hardware.
    run `make run`, report in `results/baseline_report.md`.
    Result (VERIFY=yes): 322 total, 284 compile, 58 pass self-check, 76 run w/o self-check,
    69 timeout (300 s), 43 crash, 38 self-check fail.
-3. [next] Decide benchmark subset + correctness oracle (original omp output vs stripped).
+3. [done] Benchmark subset = the 58 with `pass` in the report; correctness = built-in self-check.
 4. Agent launcher (sbatch, claude/opencode, fn-eval), result collection, report.
