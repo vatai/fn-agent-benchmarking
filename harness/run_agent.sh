@@ -132,20 +132,29 @@ record_feedback() {
 write_result() {
   local usage
   usage=$(python3 "$HARNESS/agent_usage.py" "$TOOL" "$RUN_DIR/agent_output.json")
-  python3 - "$RUN_DIR/result.json" <<PY
-import json, sys
+  USAGE_JSON="$usage" NODE="$(hostname)" python3 - "$RUN_DIR/result.json" <<'PY'
+import json, os, sys
+env = os.environ
+def num(name):
+    value = env.get(name, "")
+    return None if value in ("", "null") else float(value)
 result = {
-  "tool": "$TOOL", "model": "$MODEL", "benchmark": "$BENCH", "rep": $REP,
-  "slurm_job_id": "${SLURM_JOB_ID:-}", "node": "$(hostname)",
-  "baseline": {"rc": $BASELINE_RC, "seconds": $BASELINE_SECONDS},
-  "agent": {"rc": $AGENT_RC, "wall_seconds": $AGENT_WALL, "usage": $usage},
-  "verify": {"rc": $VERIFY_RC, "correct": $CORRECT, "seconds": $AGENT_SECONDS},
-  "speedup": $SPEEDUP,
-  "feedback": """$FEEDBACK_LINE""",
+  "tool": env["TOOL"], "model": env["MODEL"], "benchmark": env["BENCH"], "rep": int(env["REP"]),
+  "slurm_job_id": env.get("SLURM_JOB_ID", ""), "node": env["NODE"],
+  "baseline": {"rc": int(env["BASELINE_RC"]), "seconds": num("BASELINE_SECONDS")},
+  "agent": {"rc": int(env["AGENT_RC"]), "wall_seconds": num("AGENT_WALL"), "usage": json.loads(env["USAGE_JSON"])},
+  "verify": {"rc": int(env["VERIFY_RC"]), "correct": env["CORRECT"] == "true", "seconds": num("AGENT_SECONDS")},
+  "speedup": num("SPEEDUP"),
+  "feedback": env.get("FEEDBACK_LINE", "").strip(),
 }
 json.dump(result, open(sys.argv[1], "w"), indent=2)
 print(json.dumps(result))
 PY
+}
+
+export TOOL MODEL BENCH REP
+export_measurements() {
+  export BASELINE_RC BASELINE_SECONDS AGENT_RC AGENT_WALL VERIFY_RC CORRECT AGENT_SECONDS SPEEDUP FEEDBACK_LINE
 }
 
 setup_environment
@@ -153,4 +162,5 @@ measure_baseline
 run_agent
 verify_result
 record_feedback
+export_measurements
 write_result
