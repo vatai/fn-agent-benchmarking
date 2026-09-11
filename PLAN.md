@@ -17,6 +17,8 @@ different models) can optimise a set of benchmarks on this HPC hardware.
 - Output of the generated code is verified for correctness.
 - Models: `models_claude.txt` (sonnet, opus, fable) and `models_opencode.txt`
   (RiVault models via the litellm provider that pass a tool-calling probe).
+- Isolation: each agent run gets its own copy of the benchmark directory.
+- Concurrency: runs are independent Slurm jobs and may execute concurrently.
 - Repetitions: 3 independent runs per (model, benchmark) pair.
 - Benchmarks: the `benchmarks/*` that compile with `Makefile.nvc` (`VERIFY=yes`),
   run, and pass their built-in self-check (`pass` in `results/baseline_report.md`).
@@ -33,9 +35,7 @@ different models) can optimise a set of benchmarks on this HPC hardware.
    vars or config files).
 4. fn-eval: what it expects as input and where it stores telemetry, so it can be
    collected.
-5. Isolation: one git worktree/copy per agent run (default: yes), and whether
-   runs may execute concurrently on the same node (timing interference).
-6. Results format: e.g. CSV/JSON per run plus a summary table.
+5. Results format: e.g. CSV/JSON per run plus a summary table.
 
 ## Plan/Steps
 
