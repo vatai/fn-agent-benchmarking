@@ -12,30 +12,29 @@ different models) can optimise a set of benchmarks on this HPC hardware.
 - Both `claude` and `opencode` have the `fn-eval` plugin installed; it must be
   invoked when an agent finishes its evaluation.
 - Record per run: token usage, wall time, speedup.
+- Runtime = the kernel time printed by the benchmark itself; speedup is relative
+  to the stripped serial version in `benchmarks/` (the agent's starting point).
 - Output of the generated code is verified for correctness.
 - Benchmarks: the `benchmarks/*` that compile with `Makefile.nvc` (`VERIFY=yes`),
   run, and pass their built-in self-check (`pass` in `results/baseline_report.md`).
 
 ## TODO (to be removed once the user has provided everything)
 
-1. Benchmark timing: which number to take as the runtime (the benchmark's own
-   printed kernel time vs. wall time of `make run`), and the speedup baseline
-   (stripped serial version vs. original omp version).
-2. Model list: which models for claude (`--model`) and opencode
+1. Model list: which models for claude (`--model`) and opencode
    (`provider/model`), and how many repetitions per model.
-3. Instructions: the exact prompt given to agents, and constraints (time/turn/
+2. Instructions: the exact prompt given to agents, and constraints (time/turn/
    token budget per run; allowed to change build flags/compiler; allowed to use
    GPU; etc.).
-4. Slurm: partition, nodes/GPUs per job, wall-time limit, whether the agent
+3. Slurm: partition, nodes/GPUs per job, wall-time limit, whether the agent
    itself runs inside the sbatch job (needs network + API keys on compute nodes)
    or only the benchmark runs do.
-5. Credentials: API keys/auth for both tools available on compute nodes (env
+4. Credentials: API keys/auth for both tools available on compute nodes (env
    vars or config files).
-6. fn-eval: what it expects as input and where it stores telemetry, so it can be
+5. fn-eval: what it expects as input and where it stores telemetry, so it can be
    collected.
-7. Isolation: one git worktree/copy per agent run (default: yes), and whether
+6. Isolation: one git worktree/copy per agent run (default: yes), and whether
    runs may execute concurrently on the same node (timing interference).
-8. Results format: e.g. CSV/JSON per run plus a summary table.
+7. Results format: e.g. CSV/JSON per run plus a summary table.
 
 ## Plan/Steps
 
