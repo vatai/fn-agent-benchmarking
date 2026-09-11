@@ -15,13 +15,14 @@ different models) can optimise a set of benchmarks on this HPC hardware.
 - Runtime = the kernel time printed by the benchmark itself; speedup is relative
   to the stripped serial version in `benchmarks/` (the agent's starting point).
 - Output of the generated code is verified for correctness.
+- Models: `models_claude.txt` (sonnet, opus, fable) and `models_opencode.txt`
+  (RiVault models capable of agentic coding), one `provider/model` per line.
 - Benchmarks: the `benchmarks/*` that compile with `Makefile.nvc` (`VERIFY=yes`),
   run, and pass their built-in self-check (`pass` in `results/baseline_report.md`).
 
 ## TODO (to be removed once the user has provided everything)
 
-1. Model list: which models for claude (`--model`) and opencode
-   (`provider/model`), and how many repetitions per model.
+1. Repetitions per model.
 2. Instructions: the exact prompt given to agents, and constraints (time/turn/
    token budget per run; allowed to change build flags/compiler; allowed to use
    GPU; etc.).

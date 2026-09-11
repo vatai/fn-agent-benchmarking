@@ -1,0 +1,4 @@
+# One model per line, passed to `claude --model`. Lines starting with # are ignored.
+claude-sonnet-5
+claude-opus-5
+claude-fable-5-1

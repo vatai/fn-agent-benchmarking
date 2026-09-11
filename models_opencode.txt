@@ -1,0 +1,21 @@
+# One model per line, passed to `opencode run --model provider/model`.
+# Provider "myprovider" = RiVault (OpenAI-compatible, http://134.160.189.137:11434),
+# configured in ~/.config/opencode/opencode.json. Lines starting with # are ignored.
+# Only models capable of agentic coding (tool calling) are listed.
+myprovider/moonshotai/Kimi-K3
+myprovider/zai-org/GLM-5.2
+myprovider/zai-org/GLM-4.7-FP8
+myprovider/zai-org/GLM-4.7-Flash
+myprovider/deepseek-ai/DeepSeek-V4-Flash
+myprovider/Qwen/Qwen3.6-27B-FP8
+myprovider/Qwen/Qwen3.6-35B-A3B-FP8
+myprovider/qwen3-coder:30b
+myprovider/Kimi-K2-Thinking
+# Unknown underlying models; enable if they support tool calling:
+#myprovider/RiVault-Reasoning-Small
+#myprovider/RiVault-Reasoning-Medium
+#myprovider/RiVault-Reasoning-Large
+#myprovider/RiVault-Instruction-Small
+#myprovider/RiVault-Instruction-Medium
+# Excluded (no/weak tool use or not coding models): K2-Think, Llama-4-Scout,
+# translategemma, GLM-OCR, codellama:7b, qwen3:8b, gemma3:12b, llava, bge-m3.
