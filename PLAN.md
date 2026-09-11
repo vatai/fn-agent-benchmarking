@@ -17,6 +17,13 @@ different models) can optimise a set of benchmarks on this HPC hardware.
 - Output of the generated code is verified for correctness.
 - Models: `models_claude.txt` (sonnet, opus, fable) and `models_opencode.txt`
   (RiVault models via the litellm provider that pass a tool-calling probe).
+- Slurm: partition `gpu`, 1 GPU per job, account from `$SBATCH_ACCOUNT`
+  (valid accounts: rkp00042, rkp00033; note `.envrc` currently has a typo
+  `rkp000042`). The agent itself runs inside the job: compute nodes reach the
+  Anthropic API and RiVault; claude uses the claude.ai login in `~/.claude`,
+  opencode needs `RIVAULT_API_KEY` (from `.envrc`). Verified 2026-09-11.
+- fn-eval: figure of merit `speedup` (unit x), value = measured speedup,
+  satisfaction derived from it (1 = slower/incorrect, 3 = ~1x, 5 = >=100x).
 - Results: one JSON file per run plus summary tables in Markdown files.
 - Isolation: each agent run gets its own copy of the benchmark directory.
 - Concurrency: runs are independent Slurm jobs and may execute concurrently.
@@ -26,16 +33,32 @@ different models) can optimise a set of benchmarks on this HPC hardware.
 
 ## TODO (to be removed once the user has provided everything)
 
-1. Instructions: the exact prompt given to agents, and constraints (time/turn/
-   token budget per run; allowed to change build flags/compiler; allowed to use
-   GPU; etc.).
-2. Slurm: partition, nodes/GPUs per job, wall-time limit, whether the agent
-   itself runs inside the sbatch job (needs network + API keys on compute nodes)
-   or only the benchmark runs do.
-3. Credentials: API keys/auth for both tools available on compute nodes (env
-   vars or config files).
-4. fn-eval: what it expects as input and where it stores telemetry, so it can be
-   collected.
+1. Instructions: confirm/edit the proposed agent prompt and constraints below.
+
+## Proposed agent instructions (to confirm)
+
+Prompt given to every agent (same for claude and opencode), run inside the
+isolated copy of one benchmark directory:
+
+> You are in the directory of a small HPC benchmark written in serial C/C++.
+> Your task is to make it run as fast as possible on this machine (NVIDIA GB200
+> GPU, 144-core Grace CPU; `nvc++` from `module load nvhpc-nompi/26.5` is the
+> compiler used by `Makefile.nvc`). You may use OpenMP (CPU or target offload),
+> OpenACC, CUDA, or any other approach the compiler supports, and you may change
+> `Makefile.nvc` (flags, sources) but not `main`'s command-line interface or the
+> problem sizes in the `run` target.
+> Build with `make -f Makefile.nvc SM=cc100 VERIFY=yes`, run with
+> `make -f Makefile.nvc SM=cc100 run`. The program prints its own kernel time
+> and a PASS/FAIL self-check; the result only counts if the self-check passes.
+> Iterate: measure, optimise, re-verify. Do not modify the verification code or
+> the reference implementation. When done, leave the fastest correct version in
+> place and stop.
+
+Constraints: one benchmark per run; wall-time limit 1 h per job; no turn/token
+cap beyond that (claude: `--max-turns` unset; opencode default); agent gets
+`--dangerously-skip-permissions` / equivalent since it runs isolated in a Slurm
+job. The harness independently rebuilds and runs the result, checks PASS,
+extracts the printed kernel time and computes speedup vs the stripped baseline.
 
 ## Plan/Steps
 
