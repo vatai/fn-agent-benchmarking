@@ -27,7 +27,7 @@ build_one() {
   name=$(basename "$dir")
   log="$OUT_DIR/$name.build.log"
   make -C "$dir" -f Makefile.nvc clean >/dev/null 2>&1
-  if make -C "$dir" -f Makefile.nvc SM="$SM" >"$log" 2>&1; then
+  if make -C "$dir" -f Makefile.nvc SM="$SM" VERIFY=yes >"$log" 2>&1; then
     echo ok >"$OUT_DIR/$name.build"
   else
     echo fail >"$OUT_DIR/$name.build"
