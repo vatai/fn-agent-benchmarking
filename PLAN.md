@@ -41,7 +41,7 @@ different models) can optimise a set of benchmarks on this HPC hardware.
    (pragmas removed, CRLF normalised, sibling-variant headers copied in, HeCBench clone deleted).
 2. [done] `build_and_test_benchmarks.sh`: build all with nvc++ (nvhpc-nompi/26.5, cc100),
    run `make run`, report in `results/baseline_report.md`.
-   Result: 322 total, 285 compile, 57 pass self-check, 78 run w/o self-check,
-   68 timeout (300 s), 43 crash, 39 self-check fail.
+   Result (VERIFY=yes): 322 total, 284 compile, 58 pass self-check, 76 run w/o self-check,
+   69 timeout (300 s), 43 crash, 38 self-check fail.
 3. [next] Decide benchmark subset + correctness oracle (original omp output vs stripped).
 4. Agent launcher (sbatch, claude/opencode, fn-eval), result collection, report.

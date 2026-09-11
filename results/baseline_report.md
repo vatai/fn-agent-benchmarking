@@ -5,7 +5,7 @@ Compiler: nvc++ (nvhpc-nompi/26.5), SM=cc100, run timeout 300s.
 | benchmark | compiled | run result |
 |---|---|---|
 | accuracy | ok | pass |
-| ace | ok | unverified |
+| ace | ok | pass |
 | adam | ok | fail |
 | adamw | ok | fail |
 | adjacent | ok | timeout |
@@ -180,7 +180,7 @@ Compiler: nvc++ (nvhpc-nompi/26.5), SM=cc100, run timeout 300s.
 | lrn | ok | timeout |
 | lsqt | ok | crash(2) |
 | lud | fail | - |
-| lulesh | ok | unverified |
+| lulesh | fail | - |
 | mallocFree | ok | unverified |
 | mandelbrot | ok | unverified |
 | mask | ok | timeout |
@@ -229,7 +229,7 @@ Compiler: nvc++ (nvhpc-nompi/26.5), SM=cc100, run timeout 300s.
 | overlay | ok | pass |
 | p4 | ok | fail |
 | page-rank | ok | pass |
-| particle-diffusion | ok | fail |
+| particle-diffusion | ok | timeout |
 | particlefilter | ok | timeout |
 | particles | ok | unverified |
 | pathfinder | ok | unverified |
@@ -330,7 +330,7 @@ Compiler: nvc++ (nvhpc-nompi/26.5), SM=cc100, run timeout 300s.
 ## Summary
 
 - total: 322
-- compiled: 285
-- ran and self-check passed: 57
-- ran without error but no self-check (unverified): 78
+- compiled: 284
+- ran and self-check passed: 58
+- ran without error but no self-check (unverified): 76
 - other (fail/crash/timeout): 150
