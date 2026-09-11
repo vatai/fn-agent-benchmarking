@@ -70,5 +70,13 @@ extracts the printed kernel time and computes speedup vs the stripped baseline.
    `collect_results.py` (-> results/summary.md, results/runs.json).
    Runs live outside the repo in `../fn-agent-benchmarking-runs/` so agents do
    not see this repo's CLAUDE.md/.git.
-5. [in progress] Smoke test (softmax, 10 min budget) then full submission (3306 jobs).
-6. Collect results, write summary, commit.
+5. [done] Smoke tests. First full submission failed (claude: claude.ai usage
+   limit 429; opencode: shared SQLite DB broken by ~1000 concurrent jobs);
+   fixed with job arrays + concurrency cap + per-run XDG_DATA_HOME.
+6. [running] opencode experiment: arrays 100984 (2000 tasks) + 100985 (784),
+   64 concurrent each, submitted 2026-09-11 22:40 JST. Runs in
+   `../fn-agent-benchmarking-runs/`.
+7. [blocked] claude experiment (522 runs): needs an API key
+   (`ANTHROPIC_API_KEY`) or a very low concurrency on the claude.ai
+   subscription; decision pending.
+8. Collect results (`harness/collect_results.py`), commit `results/summary.md`.
