@@ -17,25 +17,25 @@ different models) can optimise a set of benchmarks on this HPC hardware.
 - Output of the generated code is verified for correctness.
 - Models: `models_claude.txt` (sonnet, opus, fable) and `models_opencode.txt`
   (RiVault models via the litellm provider that pass a tool-calling probe).
+- Repetitions: 3 independent runs per (model, benchmark) pair.
 - Benchmarks: the `benchmarks/*` that compile with `Makefile.nvc` (`VERIFY=yes`),
   run, and pass their built-in self-check (`pass` in `results/baseline_report.md`).
 
 ## TODO (to be removed once the user has provided everything)
 
-1. Repetitions per model.
-2. Instructions: the exact prompt given to agents, and constraints (time/turn/
+1. Instructions: the exact prompt given to agents, and constraints (time/turn/
    token budget per run; allowed to change build flags/compiler; allowed to use
    GPU; etc.).
-3. Slurm: partition, nodes/GPUs per job, wall-time limit, whether the agent
+2. Slurm: partition, nodes/GPUs per job, wall-time limit, whether the agent
    itself runs inside the sbatch job (needs network + API keys on compute nodes)
    or only the benchmark runs do.
-4. Credentials: API keys/auth for both tools available on compute nodes (env
+3. Credentials: API keys/auth for both tools available on compute nodes (env
    vars or config files).
-5. fn-eval: what it expects as input and where it stores telemetry, so it can be
+4. fn-eval: what it expects as input and where it stores telemetry, so it can be
    collected.
-6. Isolation: one git worktree/copy per agent run (default: yes), and whether
+5. Isolation: one git worktree/copy per agent run (default: yes), and whether
    runs may execute concurrently on the same node (timing interference).
-7. Results format: e.g. CSV/JSON per run plus a summary table.
+6. Results format: e.g. CSV/JSON per run plus a summary table.
 
 ## Plan/Steps
 
