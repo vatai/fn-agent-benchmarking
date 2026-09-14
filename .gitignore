@@ -6,3 +6,9 @@ results_run.log
 runs/
 results/slurm/
 
+report/*.aux
+report/*.log
+report/*.fls
+report/*.fdb_latexmk
+report/*.out
+report/*.toc

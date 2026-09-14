@@ -1,0 +1,172 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{booktabs,longtable,array}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\usepackage{url}
+\input{tables/macros}
+
+\title{LLM coding agents optimising serial HPC benchmarks on GB200:\\
+       first results with OpenCode and RiVault-hosted models}
+\author{Emil Vatai (harness and runs generated with Claude Code)}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We let \nmodels{} open-weight LLMs, driven by the OpenCode coding agent, optimise
+\nbenchmarks{} HeCBench benchmarks whose OpenMP pragmas had been stripped, on a
+node with an NVIDIA GB200 GPU and a 144-core Grace CPU. Each (model, benchmark)
+pair was attempted three times with a two-hour budget, for \nruns{} runs in total.
+\ncorrect{} runs produced code that compiled, ran and passed the benchmark's
+built-in self-check. The median verified speedup over the serial baseline is
+\medianspeedup$\times$. A substantial fraction of reported speedups
+(\nsuspicious{} runs above \suspiciouscap$\times$) are implausible and indicate
+that the benchmarks' self-reported kernel timers can be defeated; these are
+reported separately and excluded from the geometric means.
+\end{abstract}
+
+\section{Setup}
+
+\paragraph{Benchmarks.}
+HeCBench (branch \texttt{ktwork}, \texttt{src2/*-omp}) was reduced to its OpenMP
+variants, every \texttt{\#pragma omp} line was deleted (leaving serial code that
+still calls \texttt{omp\_*} runtime functions), and headers referenced from
+sibling variants were copied in. Of 322 benchmarks, 284 compiled with
+\texttt{nvc++} (NVIDIA HPC SDK 26.5), and \nbenchmarks{} both ran within
+\SI{300}{s} and passed their built-in self-check (\texttt{VERIFY=yes}). Only
+these \nbenchmarks{} were used, so correctness can be judged by the benchmark
+itself.
+
+\paragraph{Agents and models.}
+OpenCode~1.18 with \nmodels{} models served by the RiVault LiteLLM gateway
+(Table~\ref{tab:models}). Claude Code runs were planned but not executed: the
+available claude.ai subscription rate-limits at the scale required.
+
+\paragraph{Protocol.}
+Every run is one Slurm job (partition \texttt{gpu}, one GB200, \SI{2.5}{h}
+limit) executing \texttt{harness/run\_agent.sh}:
+\begin{enumerate}
+  \item copy the benchmark twice; build and run the untouched copy to obtain the
+        \emph{baseline} time;
+  \item start the agent in the second copy with the fixed prompt of
+        \texttt{harness/agent\_prompt.md} (optimise for this machine; any
+        approach the compiler supports; do not touch verification or problem
+        sizes; \SI{2}{h} limit); permissions are auto-approved; the agent is
+        killed after \SI{2}{h};
+  \item rebuild the agent's copy from clean, run it, require \texttt{PASS} in the
+        output;
+  \item speedup $=$ baseline time $/$ optimised time, where the time is the sum
+        of the kernel/execution times the benchmark prints (wall time of the run
+        if it prints none);
+  \item record token usage and wall time; store an \texttt{fn-eval} feedback
+        record with figure of merit \emph{speedup}.
+\end{enumerate}
+Each run had its own copy of the benchmark and its own OpenCode data directory;
+runs never saw the repository, its history or the original OpenMP code.
+
+\section{Results}
+
+\subsection{Per model}
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{l r r r r r r r}
+\toprule
+model & runs & correct & $>$\suspiciouscap$\times$ & median & geo-mean$^\dagger$ & median wall & output tokens \\
+      &      &         &                          & speedup & speedup & (min) & (M) \\
+\midrule
+\input{tables/models}
+\bottomrule
+\end{tabular}
+\caption{Per-model summary over \nbenchmarks{} benchmarks $\times$ 3 repetitions.
+``correct'' = compiled, ran and passed the self-check. $^\dagger$Geometric mean
+over correct runs with speedup $\le$ \suspiciouscap$\times$; the median is over
+all correct runs.}
+\label{tab:models}
+\end{table}
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{l r r r r r r}
+\toprule
+model & correct & build failed & self-check failed & run timeout & agent error & hit 2\,h \\
+\midrule
+\input{tables/outcomes}
+\bottomrule
+\end{tabular}
+\caption{Run outcomes per model. ``agent error'' = the agent produced no output
+tokens (API/server error). ``hit 2\,h'' counts runs in which the agent was
+killed at the time limit (its last state is still verified and may be correct).}
+\label{tab:outcomes}
+\end{table}
+
+Three groups are visible in Table~\ref{tab:models}. The instruction-tuned
+small/medium RiVault aliases and Llama-4-Scout finish in seconds, change
+essentially nothing, and therefore score $\approx 1\times$ while being
+``correct'' almost always. Seed-OSS-36B and RiVault/Instruction-Small attempt
+changes but break the build or the self-check in roughly half of the runs. The
+reasoning and agentic models (Kimi-K3, GLM-5.2, GLM-5.3-Flash, DeepSeek-V4-Flash,
+Qwen3.8-27B, the RiVault Reasoning/Agentic aliases) keep 145--167 of 174 runs
+correct with median speedups in the tens to hundreds.
+
+\subsection{Per benchmark}
+
+\begin{center}\small
+\begin{longtable}{l r r r l r}
+\toprule
+benchmark & correct/runs & median & best$^\dagger$ & best model & $>$\suspiciouscap$\times$ \\
+\midrule
+\endfirsthead
+\toprule
+benchmark & correct/runs & median & best$^\dagger$ & best model & $>$\suspiciouscap$\times$ \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\input{tables/benchmarks}
+\caption{Per-benchmark results over all models and repetitions. $^\dagger$Best
+verified speedup among runs $\le$ \suspiciouscap$\times$.}
+\label{tab:benchmarks}
+\end{longtable}
+\end{center}
+
+\section{Caveats}
+
+\begin{itemize}
+  \item \textbf{Timer gaming.} \nsuspicious{} correct runs report speedups above
+        \suspiciouscap$\times$, up to $10^7\times$, and 25 report a kernel time
+        of exactly zero. The self-checks passed, so the results are right, but
+        the timed region evidently no longer contains the work (for example
+        results computed once outside a repeated timing loop, or asynchronous
+        GPU launches timed without synchronisation). The harness trusts the
+        benchmark's own timer; an external, whole-program timing or an audit of
+        the \texttt{work/} directories is required before these numbers are
+        used. All aggregate speedups above exclude these runs.
+  \item \textbf{Baseline.} The baseline is the stripped serial program on one
+        Grace core, not the original OpenMP offload version. Speedups are
+        therefore ``serial CPU $\to$ whatever the agent produced''.
+  \item \textbf{Self-check strength.} Tolerances and coverage of the built-in
+        checks vary; passing is necessary, not sufficient, for correctness.
+  \item \textbf{Slower results.} \nslower{} correct runs were slower than the
+        baseline; they count in the medians and geometric means.
+  \item \textbf{Concurrency.} Up to 128 agents ran at once against one LiteLLM
+        gateway; \nagenterror{} runs failed on the API side and \nagenttimeout{}
+        hit the two-hour agent limit, both more likely under load.
+\end{itemize}
+
+\section{Reproduction}
+
+\begin{verbatim}
+./prepare_benchmarks.sh                 # HeCBench ktwork -> benchmarks/ (pragmas stripped)
+./build_and_test_benchmarks.sh          # baseline report -> results/baseline_report.md
+source .envrc && TOOLS=opencode harness/submit_all.sh   # 2784 Slurm array tasks
+python3 harness/collect_results.py      # -> results/runs.json, results/summary.md
+python3 report/make_tables.py && cd report && latexmk -pdf report.tex
+\end{verbatim}
+Per-run artefacts (agent transcript, modified sources, build and run logs,
+\texttt{result.json}) are in
+\texttt{../fn-agent-benchmarking-runs/opencode/<model>/<benchmark>/rep<N>/}.
+
+\end{document}
