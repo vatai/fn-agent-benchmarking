@@ -35,7 +35,7 @@ def attempted(run):
 
 def summarise(group):
     correct = [r for r in group if attempted(r) and r["verify"]["correct"]]
-    speedups = [r["speedup"] for r in correct]
+    speedups = [r["speedup"] for r in correct if r["speedup"] is not None]
     return {
         "runs": len(group),
         "agent_errors": sum(not attempted(r) for r in group),
@@ -70,7 +70,7 @@ def model_table(runs):
              "|---|---|---|---|---|---|---|---|---|"]
     for (tool, model), group in sorted(per_model.items()):
         errors = sum(not attempted(r) for r in group)
-        speedups = [r["speedup"] for r in group if attempted(r) and r["verify"]["correct"] and r["speedup"] > 0]
+        speedups = [r["speedup"] for r in group if attempted(r) and r["verify"]["correct"] and (r["speedup"] or 0) > 0]
         geo = round(statistics.geometric_mean(speedups), 3) if speedups else None
         total_in = sum(r["agent"]["usage"].get("input_tokens") or 0 for r in group)
         total_out = sum(r["agent"]["usage"].get("output_tokens") or 0 for r in group)
