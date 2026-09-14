@@ -78,6 +78,44 @@ def model_table():
                      for row in rows)
 
 
+def tokens(run):
+    usage = run["agent"]["usage"]
+    return (usage.get("input_tokens") or 0) + (usage.get("output_tokens") or 0)
+
+
+def peak_row(model, runs):
+    good = plausible(runs)
+    peak = max(good, key=lambda r: r["speedup"]) if good else None
+    return [
+        short_model(model),
+        peak["speedup"] if peak else float("nan"),
+        peak["benchmark"].replace("_", r"\_") if peak else "--",
+        tokens(peak) / 1e3 if peak else float("nan"),
+        peak["agent"]["wall_seconds"] / 60 if peak else float("nan"),
+        sum(tokens(r) for r in runs) / 1e6,
+        sum(r["agent"]["wall_seconds"] for r in runs) / 3600,
+    ]
+
+
+PEAK_HEAD = r"""\begin{tabular}{l r l r r r r}
+\toprule
+model & peak & benchmark & \multicolumn{2}{c}{cost of the peak run} & \multicolumn{2}{c}{cost of the sweep} \\
+      & speedup &         & tokens (k) & wall (min) & tokens (M) & agent-hours \\
+\midrule
+"""
+
+
+def peak_table():
+    rows = [peak_row(model, runs) for model, runs in sorted(by(RUNS, "model").items())]
+    best = max(row[1] for row in rows if row[1] == row[1])
+    lines = []
+    for row in rows:
+        peak = fmt(row[1])
+        lines.append(" & ".join([row[0], rf"\textbf{{{peak}}}" if row[1] == best else peak, row[2],
+                                 fmt(row[3]), fmt(row[4]), fmt(row[5]), fmt(row[6])]) + r" \\")
+    return "\n".join(lines)
+
+
 def outcome_table():
     rows = []
     for model, runs in sorted(by(RUNS, "model").items()):
@@ -158,6 +196,7 @@ def main():
     OUT.mkdir(exist_ok=True)
     (OUT / "models.tex").write_text(MODELS_HEAD + model_table() + "\n" + TABULAR_FOOT)
     (OUT / "outcomes.tex").write_text(OUTCOMES_HEAD + outcome_table() + "\n" + TABULAR_FOOT)
+    (OUT / "peaks.tex").write_text(PEAK_HEAD + peak_table() + "\n" + TABULAR_FOOT)
     (OUT / "benchmarks.tex").write_text(BENCH_HEAD + benchmark_table() + "\n" + BENCH_FOOT)
     (OUT / "macros.tex").write_text(macros() + "\n")
     print("tables written to", OUT)

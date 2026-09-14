@@ -85,6 +85,17 @@ all correct runs.}
 
 \begin{table}[h]
 \centering\footnotesize\setlength{\tabcolsep}{4pt}
+\input{tables/peaks}
+\caption{Peak verified speedup per model (largest speedup $\le$
+\suspiciouscap$\times$ among correct runs) and what it cost: tokens
+(input$+$output) and agent wall time of that run, and the totals over the whole
+sweep of \nbenchmarks{} benchmarks $\times$ 3 repetitions. The RiVault gateway
+reports no monetary price, so cost is given in tokens and agent-hours.}
+\label{tab:peaks}
+\end{table}
+
+\begin{table}[h]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \input{tables/outcomes}
 \caption{Run outcomes per model. ``agent error'' = the agent produced no output
 tokens (API/server error). ``hit 2\,h'' counts runs in which the agent was
@@ -92,6 +103,7 @@ killed at the time limit (its last state is still verified and may be correct).}
 \label{tab:outcomes}
 \end{table}
 
+Table~\ref{tab:peaks} lists each model's best verified result and its cost.
 Three groups are visible in Table~\ref{tab:models}. The instruction-tuned
 small/medium RiVault aliases and Llama-4-Scout finish in seconds, change
 essentially nothing, and therefore score $\approx 1\times$ while being
