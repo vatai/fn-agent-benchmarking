@@ -12,7 +12,7 @@ SUSPICIOUS = 1000.0  # speedups above this almost always mean the timed region w
 
 
 def short_model(name):
-    return name.replace("litellm/", "").replace("_", r"\_")
+    return name.replace("litellm/", "").split("/")[-1].replace("_", r"\_")
 
 
 def outcome(run):
@@ -112,7 +112,7 @@ def macros():
 
 MODELS_HEAD = r"""\begin{tabular}{l r r r r r r r}
 \toprule
-model & runs & correct & $>$\suspiciouscap$\times$ & median & geo-mean$^\dagger$ & median wall & output tokens \\
+model & runs & correct & $>$\suspiciouscap$\times$ & median & geo-mean$^\dagger$ & wall & out.\ tok. \\
       &      &         &                          & speedup & speedup & (min) & (M) \\
 \midrule
 """

@@ -71,17 +71,19 @@ runs never saw the repository, its history or the original OpenMP code.
 \subsection{Per model}
 
 \begin{table}[h]
-\centering\small
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \input{tables/models}
-\caption{Per-model summary over \nbenchmarks{} benchmarks $\times$ 3 repetitions.
-``correct'' = compiled, ran and passed the self-check. $^\dagger$Geometric mean
+\caption{Per-model summary over \nbenchmarks{} benchmarks $\times$ 3 repetitions
+(provider prefixes dropped; ``Agentic-*'', ``Instruction-*'' and ``Reasoning-*''
+are RiVault aliases). ``correct'' = compiled, ran and passed the self-check;
+``wall'' is the median agent wall time. $^\dagger$Geometric mean
 over correct runs with speedup $\le$ \suspiciouscap$\times$; the median is over
 all correct runs.}
 \label{tab:models}
 \end{table}
 
 \begin{table}[h]
-\centering\small
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \input{tables/outcomes}
 \caption{Run outcomes per model. ``agent error'' = the agent produced no output
 tokens (API/server error). ``hit 2\,h'' counts runs in which the agent was
