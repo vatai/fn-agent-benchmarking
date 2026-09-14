@@ -50,19 +50,32 @@ def by(runs, key):
     return groups
 
 
+def model_row(model, runs):
+    ok, good = scored(runs), plausible(runs)
+    return [
+        short_model(model), len(runs), len(ok),
+        sum(r["speedup"] > SUSPICIOUS for r in ok),
+        statistics.median([r["speedup"] for r in ok]) if ok else float("nan"),
+        geomean([r["speedup"] for r in good]),
+        statistics.median([r["agent"]["wall_seconds"] for r in runs]) / 60,
+        sum(r["agent"]["usage"].get("output_tokens") or 0 for r in runs) / 1e6,
+    ]
+
+
+def cell(value, column, maxima):
+    text = str(value) if isinstance(value, int) else (f"{value:.1f}" if column == 7 else fmt(value))
+    highlighted = column in maxima and value == maxima[column]
+    return rf"\textbf{{{text}}}" if highlighted else text
+
+
+HIGHLIGHT_COLUMNS = (3, 4, 5, 6, 7)  # ">1000x" and every column to its right
+
+
 def model_table():
-    rows = []
-    for model, runs in sorted(by(RUNS, "model").items()):
-        ok, good = scored(runs), plausible(runs)
-        rows.append(" & ".join([
-            short_model(model), str(len(runs)), str(len(ok)),
-            str(sum(r["speedup"] > SUSPICIOUS for r in ok)),
-            fmt(statistics.median([r["speedup"] for r in ok])) if ok else "--",
-            fmt(geomean([r["speedup"] for r in good])),
-            fmt(statistics.median([r["agent"]["wall_seconds"] for r in runs]) / 60, 3),
-            f"{sum(r['agent']['usage'].get('output_tokens') or 0 for r in runs) / 1e6:.1f}",
-        ]) + r" \\")
-    return "\n".join(rows)
+    rows = [model_row(model, runs) for model, runs in sorted(by(RUNS, "model").items())]
+    maxima = {c: max(row[c] for row in rows if row[c] == row[c]) for c in HIGHLIGHT_COLUMNS}
+    return "\n".join(" & ".join([row[0]] + [cell(row[c], c, maxima) for c in range(1, 8)]) + r" \\"
+                     for row in rows)
 
 
 def outcome_table():
