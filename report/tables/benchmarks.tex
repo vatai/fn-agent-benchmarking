@@ -1,3 +1,14 @@
+\begin{longtable}{l r r r l r}
+\toprule
+benchmark & correct/runs & median & best$^\dagger$ & best model & $>$\suspiciouscap$\times$ \\
+\midrule
+\endfirsthead
+\toprule
+benchmark & correct/runs & median & best$^\dagger$ & best model & $>$\suspiciouscap$\times$ \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
 accuracy & 45/48 & 3.58e+03 & 997 & Qwen/Qwen3.6-35B-A3B & 30 \\
 ace & 37/48 & 161 & 590 & deepseek-ai/DeepSeek-V4-Flash & 1 \\
 aligned-types & 43/48 & 161 & 566 & deepseek-ai/DeepSeek-V4-Flash-reasoning & 6 \\
@@ -56,3 +67,7 @@ tensorT & 43/48 & 2.03e+03 & 934 & RiVault/Agentic-Small & 30 \\
 triad & 41/47 & 0.885 & 1.61 & zai-org/GLM-5.3-Flash & 0 \\
 winograd & 44/48 & 1.47 & 152 & zai-org/GLM-5.2 & 0 \\
 zeropoint & 45/48 & 2.08e+03 & 786 & RiVault/Agentic-Medium & 24 \\
+\caption{Per-benchmark results over all models and repetitions. $^\dagger$Best
+verified speedup among runs $\le$ \suspiciouscap$\times$.}
+\label{tab:benchmarks}
+\end{longtable}

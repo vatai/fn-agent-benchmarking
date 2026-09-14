@@ -72,14 +72,7 @@ runs never saw the repository, its history or the original OpenMP code.
 
 \begin{table}[h]
 \centering\small
-\begin{tabular}{l r r r r r r r}
-\toprule
-model & runs & correct & $>$\suspiciouscap$\times$ & median & geo-mean$^\dagger$ & median wall & output tokens \\
-      &      &         &                          & speedup & speedup & (min) & (M) \\
-\midrule
 \input{tables/models}
-\bottomrule
-\end{tabular}
 \caption{Per-model summary over \nbenchmarks{} benchmarks $\times$ 3 repetitions.
 ``correct'' = compiled, ran and passed the self-check. $^\dagger$Geometric mean
 over correct runs with speedup $\le$ \suspiciouscap$\times$; the median is over
@@ -89,13 +82,7 @@ all correct runs.}
 
 \begin{table}[h]
 \centering\small
-\begin{tabular}{l r r r r r r}
-\toprule
-model & correct & build failed & self-check failed & run timeout & agent error & hit 2\,h \\
-\midrule
 \input{tables/outcomes}
-\bottomrule
-\end{tabular}
 \caption{Run outcomes per model. ``agent error'' = the agent produced no output
 tokens (API/server error). ``hit 2\,h'' counts runs in which the agent was
 killed at the time limit (its last state is still verified and may be correct).}
@@ -114,22 +101,7 @@ correct with median speedups in the tens to hundreds.
 \subsection{Per benchmark}
 
 \begin{center}\small
-\begin{longtable}{l r r r l r}
-\toprule
-benchmark & correct/runs & median & best$^\dagger$ & best model & $>$\suspiciouscap$\times$ \\
-\midrule
-\endfirsthead
-\toprule
-benchmark & correct/runs & median & best$^\dagger$ & best model & $>$\suspiciouscap$\times$ \\
-\midrule
-\endhead
-\bottomrule
-\endfoot
 \input{tables/benchmarks}
-\caption{Per-benchmark results over all models and repetitions. $^\dagger$Best
-verified speedup among runs $\le$ \suspiciouscap$\times$.}
-\label{tab:benchmarks}
-\end{longtable}
 \end{center}
 
 \section{Caveats}

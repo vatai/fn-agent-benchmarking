@@ -110,11 +110,42 @@ def macros():
     ])
 
 
+MODELS_HEAD = r"""\begin{tabular}{l r r r r r r r}
+\toprule
+model & runs & correct & $>$\suspiciouscap$\times$ & median & geo-mean$^\dagger$ & median wall & output tokens \\
+      &      &         &                          & speedup & speedup & (min) & (M) \\
+\midrule
+"""
+OUTCOMES_HEAD = r"""\begin{tabular}{l r r r r r r}
+\toprule
+model & correct & build failed & self-check failed & run timeout & agent error & hit 2\,h \\
+\midrule
+"""
+TABULAR_FOOT = "\\bottomrule\n\\end{tabular}\n"
+BENCH_HEAD = r"""\begin{longtable}{l r r r l r}
+\toprule
+benchmark & correct/runs & median & best$^\dagger$ & best model & $>$\suspiciouscap$\times$ \\
+\midrule
+\endfirsthead
+\toprule
+benchmark & correct/runs & median & best$^\dagger$ & best model & $>$\suspiciouscap$\times$ \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+"""
+BENCH_FOOT = r"""\caption{Per-benchmark results over all models and repetitions. $^\dagger$Best
+verified speedup among runs $\le$ \suspiciouscap$\times$.}
+\label{tab:benchmarks}
+\end{longtable}
+"""
+
+
 def main():
     OUT.mkdir(exist_ok=True)
-    (OUT / "models.tex").write_text(model_table() + "\n")
-    (OUT / "outcomes.tex").write_text(outcome_table() + "\n")
-    (OUT / "benchmarks.tex").write_text(benchmark_table() + "\n")
+    (OUT / "models.tex").write_text(MODELS_HEAD + model_table() + "\n" + TABULAR_FOOT)
+    (OUT / "outcomes.tex").write_text(OUTCOMES_HEAD + outcome_table() + "\n" + TABULAR_FOOT)
+    (OUT / "benchmarks.tex").write_text(BENCH_HEAD + benchmark_table() + "\n" + BENCH_FOOT)
     (OUT / "macros.tex").write_text(macros() + "\n")
     print("tables written to", OUT)
 
