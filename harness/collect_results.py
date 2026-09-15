@@ -13,8 +13,16 @@ HERE = Path(__file__).resolve().parent.parent
 RUNS_DIR = Path(os.environ.get("RUNS_DIR", HERE.parent / "fn-agent-benchmarking-runs"))
 
 
+EXCLUDED_MODEL_PREFIXES = ("litellm/RiVault/",)  # aliases of unknown models; results kept on disk, not reported
+
+
+def included(run):
+    return not run["model"].startswith(EXCLUDED_MODEL_PREFIXES)
+
+
 def load_runs():
-    return [json.load(open(p)) for p in sorted(RUNS_DIR.glob("*/*/*/rep*/result.json"))]
+    runs = [json.load(open(p)) for p in sorted(RUNS_DIR.glob("*/*/*/rep*/result.json"))]
+    return [r for r in runs if included(r)]
 
 
 def group_by_model_benchmark(runs):

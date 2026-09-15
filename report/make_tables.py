@@ -6,7 +6,9 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-RUNS = json.load(open(HERE.parent / "results" / "runs.json"))
+EXCLUDED_MODEL_PREFIXES = ("litellm/RiVault/",)  # same exclusion as harness/collect_results.py
+RUNS = [r for r in json.load(open(HERE.parent / "results" / "runs.json"))
+        if not r["model"].startswith(EXCLUDED_MODEL_PREFIXES)]
 OUT = HERE / "tables"
 SUSPICIOUS = 1000.0  # speedups above this almost always mean the timed region was emptied
 

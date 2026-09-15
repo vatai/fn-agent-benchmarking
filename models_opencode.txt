@@ -1,6 +1,7 @@
 # One model per line, passed to `opencode run --model <provider/model>`.
 # Generated from: opencode models | grep ^litellm/  (RiVault via opencode-plugin-litellm, needs RIVAULT_API_KEY)
-# Commented out: OCR/STT/translation/embedding models (reject tool calls) and 3B-class models.
+# Commented out: OCR/STT/translation/embedding models (reject tool calls), 3B-class models,
+# and all RiVault/* aliases (unknown underlying models, likely duplicates of the named ones).
 litellm/ByteDance-Seed/Seed-OSS-36B-Instruct
 litellm/deepseek-ai/DeepSeek-V4-Flash
 litellm/deepseek-ai/DeepSeek-V4-Flash-reasoning
@@ -13,16 +14,16 @@ litellm/meta-llama/Llama-4-Scout-17B-16E-Instruct
 litellm/moonshotai/Kimi-K3
 litellm/Qwen/Qwen3.6-35B-A3B
 litellm/Qwen/Qwen3.8-27B
-litellm/RiVault/Agentic-Medium
-litellm/RiVault/Agentic-Small
-litellm/RiVault/Instruction-Medium
-litellm/RiVault/Instruction-Small
+#litellm/RiVault/Agentic-Medium
+#litellm/RiVault/Agentic-Small
+#litellm/RiVault/Instruction-Medium
+#litellm/RiVault/Instruction-Small
 #litellm/RiVault/Instruction-Tiny
 #litellm/RiVault/OCR-Small
 #litellm/RiVault/OCR-Tiny
-litellm/RiVault/Reasoning-Large
-litellm/RiVault/Reasoning-Medium
-litellm/RiVault/Reasoning-Small
+#litellm/RiVault/Reasoning-Large
+#litellm/RiVault/Reasoning-Medium
+#litellm/RiVault/Reasoning-Small
 #litellm/RiVault/Reasoning-Tiny
 #litellm/RiVault/STT-Small
 litellm/zai-org/GLM-5.2

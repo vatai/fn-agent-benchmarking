@@ -41,7 +41,10 @@ itself.
 
 \paragraph{Agents and models.}
 OpenCode~1.18 with \nmodels{} models served by the RiVault LiteLLM gateway
-(Table~\ref{tab:models}). Claude Code runs were planned but not executed: the
+(Table~\ref{tab:models}). Seven further \texttt{RiVault/*} aliases (Agentic,
+Instruction and Reasoning in several sizes) were also run but are excluded from
+this report because the underlying models are undisclosed and likely duplicate
+the named ones. Claude Code runs were planned but not executed: the
 available claude.ai subscription rate-limits at the scale required.
 
 \paragraph{Protocol.}
@@ -74,8 +77,7 @@ runs never saw the repository, its history or the original OpenMP code.
 \centering\footnotesize\setlength{\tabcolsep}{4pt}
 \input{tables/models}
 \caption{Per-model summary over \nbenchmarks{} benchmarks $\times$ 3 repetitions
-(provider prefixes dropped; ``Agentic-*'', ``Instruction-*'' and ``Reasoning-*''
-are RiVault aliases). ``correct'' = compiled, ran and passed the self-check;
+(provider prefixes dropped). ``correct'' = compiled, ran and passed the self-check;
 ``wall'' is the median agent wall time. Bold marks the column maximum in the
 $>$\suspiciouscap$\times$ column and those to its right. $^\dagger$Geometric mean
 over correct runs with speedup $\le$ \suspiciouscap$\times$; the median is over
@@ -104,14 +106,13 @@ killed at the time limit (its last state is still verified and may be correct).}
 \end{table}
 
 Table~\ref{tab:peaks} lists each model's best verified result and its cost.
-Three groups are visible in Table~\ref{tab:models}. The instruction-tuned
-small/medium RiVault aliases and Llama-4-Scout finish in seconds, change
-essentially nothing, and therefore score $\approx 1\times$ while being
-``correct'' almost always. Seed-OSS-36B and RiVault/Instruction-Small attempt
-changes but break the build or the self-check in roughly half of the runs. The
-reasoning and agentic models (Kimi-K3, GLM-5.2, GLM-5.3-Flash, DeepSeek-V4-Flash,
-Qwen3.8-27B, the RiVault Reasoning/Agentic aliases) keep 145--167 of 174 runs
-correct with median speedups in the tens to hundreds.
+Three groups are visible in Table~\ref{tab:models}. Llama-4-Scout finishes
+in seconds, changes essentially nothing, and therefore scores $\approx 1\times$
+while being ``correct'' almost always. Seed-OSS-36B attempts changes but breaks
+the build or the self-check in roughly half of the runs. The remaining models
+(Kimi-K3, GLM-5.2, GLM-5.3-Flash, DeepSeek-V4-Flash and its reasoning variant,
+Qwen3.8-27B, Qwen3.6-35B-A3B) keep 143--165 of 174 runs correct with median
+speedups in the tens to hundreds.
 
 \subsection{Per benchmark}
 
